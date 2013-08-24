@@ -11,7 +11,7 @@ end
 # method to get existing node from the index, or create one
 def get_or_create_node(conn, index, data)
 
-	value = data.object.to_s
+	value = data.object.to_s.unpack('U*').pack('C*').force_encoding("UTF-8")
 	uri = data.subject.to_s
 
 	# look for node in the index
