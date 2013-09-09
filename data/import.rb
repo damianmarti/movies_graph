@@ -29,7 +29,11 @@ def get_or_create_node(conn, index, data)
 		conn.post("/db/data/index/node/#{index}_names", node_data, HEADER)
 
 		node_data = "{\"uri\" : \"#{node}\", \"key\" : \"uri\", \"value\" : \"#{uri}\"}"
-		conn.post("/db/data/index/node/#{index}", node_data, HEADER)		
+		conn.post("/db/data/index/node/#{index}", node_data, HEADER)	
+
+		node_data = "{\"uri\" : \"#{node}\", \"key\" : \"name\", \"value\" : \"#{value}\"}"		
+		conn.post("/db/data/index/node/fulltext",node_data,HEADER)
+		conn.post("/db/data/index/node/#{index}_fulltext",node_data,HEADER)
 	end
 	node
 end
@@ -51,9 +55,24 @@ end
 
 puts "begin processing..."
 
+data = '{"name":"fulltext", "config":{"type":"fulltext","provider":"lucene"}}'
+res = conn.post("http://localhost:7474/db/data/index/node",data,HEADER)
+
+puts "fulltext index created!" if res.status == 201
+
+data = '{"name":"actors_fulltext", "config":{"type":"fulltext","provider":"lucene"}}'
+res = conn.post("http://localhost:7474/db/data/index/node",data,HEADER)
+
+puts "actors fulltext index created!" if res.status == 201
+
+data = '{"name":"movies_fulltext", "config":{"type":"fulltext","provider":"lucene"}}'
+res = conn.post("http://localhost:7474/db/data/index/node",data,HEADER)
+
+puts "movies fulltext index created!" if res.status == 201
+
 count = 0
 
-RDF::Reader.open("/home/damu/Downloads/linkeddata/actor_names.nt") do |reader|
+RDF::Reader.open("data/actor_names.nt") do |reader|
 	reader.each_statement do |statement|
 		#puts "Subject: #{statement.subject} - Predicate: #{statement.predicate} - Object: #{statement.object}"
 		actor_node = get_or_create_node(conn, 'actors', statement)
@@ -65,7 +84,7 @@ puts "done actors!"
 
 count = 0
 
-RDF::Reader.open("/home/damu/Downloads/linkeddata/movie_titles.nt") do |reader|
+RDF::Reader.open("data/movie_titles.nt") do |reader|
 	reader.each_statement do |statement|
 		#puts "Subject: #{statement.subject} - Predicate: #{statement.predicate} - Object: #{statement.object}"
 		movie_node = get_or_create_node(conn, 'movies', statement)
@@ -77,7 +96,7 @@ puts "done movies!"
 
 count = 0
 
-RDF::Reader.open("/home/damu/Downloads/linkeddata/actor_movies.nt") do |reader|
+RDF::Reader.open("data/actor_movies.nt") do |reader|
 	reader.each_statement do |statement|
 		if statement.predicate == "http://data.linkedmdb.org/resource/movie/actor"
 			#puts "Subject: #{statement.subject} - Predicate: #{statement.predicate} - Object: #{statement.object}"

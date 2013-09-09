@@ -20,16 +20,9 @@ class App < Sinatra::Base
     content_type :json
     neo = Neography::Rest.new 
 
-    result = neo.get_node_index("actors_names", "name", params[:term])   
+    cypher = "START me=node:actors_fulltext({query}) RETURN ID(me), me.name ORDER BY me.name LIMIT 15"
 
-    if result
-      node = result.first
-      data = node["data"]
-      node_id = node["self"].split("/").last
-
-      return [{label: data["name"], value: node_id}].to_json
-    end
-
+    neo.execute_query(cypher, {:query => params["term"].split.map {|x| "name:#{x}*"}.join(" AND ") })["data"].map{|x| { label: x[1], value: x[0]}}.to_json
   end
 
   get '/edges/:id' do
