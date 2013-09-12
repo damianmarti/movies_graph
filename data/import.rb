@@ -1,4 +1,6 @@
-REST_URL = 'http://localhost:7474/'
+NEO_SERVER = ENV['NEO_SERVER'] || "localhost"
+NEO_PORT = ENV['NEO_PORT'] || 7474
+REST_URL = "http://#{NEO_SERVER}:#{NEO_PORT}/"
 HEADER = { 'Content-Type' => 'application/json' }
 
 %w{rubygems json faraday rdf rdf/ntriples}.each{|r| require r}

@@ -8,6 +8,15 @@ class App < Sinatra::Base
     register Sinatra::Reloader
   end
   
+  before do
+    Neography.configure do |config|
+      config.protocol       = "http://"
+      config.server         = ENV['NEO_SERVER'] || "localhost"
+      config.port           = ENV['NEO_PORT'] || 7474    
+    end
+    @neo = Neography::Rest.new 
+  end
+
   set :haml, :format => :html5 
   set :app_file, __FILE__
 
@@ -18,18 +27,16 @@ class App < Sinatra::Base
   
   get '/search' do 
     content_type :json
-    neo = Neography::Rest.new 
 
     cypher = "START me=node:actors_fulltext({query}) RETURN ID(me), me.name ORDER BY me.name LIMIT 15"
 
-    neo.execute_query(cypher, {:query => params["term"].split.map {|x| "name:#{x}*"}.join(" AND ") })["data"].map{|x| { label: x[1], value: x[0]}}.to_json
+    @neo.execute_query(cypher, {:query => params["term"].split.map {|x| "name:#{x}*"}.join(" AND ") })["data"].map{|x| { label: x[1], value: x[0]}}.to_json
   end
 
   get '/edges/:id' do
     content_type :json
-    neo = Neography::Rest.new    
 
-    node = neo.get_node(params[:id])
+    node = @neo.get_node(params[:id])
 
     if node
       if node["data"]["uri"].match("http://data.linkedmdb.org/resource/film/")
@@ -42,9 +49,9 @@ class App < Sinatra::Base
         rel_node_type = "Movie"
       end
       nodes = []
-      relationships = neo.get_node_relationships(node)
+      relationships = @neo.get_node_relationships(node)
       relationships.each {|rel|
-        nodes << neo.get_node(rel[rel_type])
+        nodes << @neo.get_node(rel[rel_type])
       }
       nodes.collect{|n|
         {
