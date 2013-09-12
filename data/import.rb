@@ -58,17 +58,17 @@ end
 puts "begin processing..."
 
 data = '{"name":"fulltext", "config":{"type":"fulltext","provider":"lucene"}}'
-res = conn.post("http://localhost:7474/db/data/index/node",data,HEADER)
+res = conn.post("/db/data/index/node",data,HEADER)
 
 puts "fulltext index created!" if res.status == 201
 
 data = '{"name":"actors_fulltext", "config":{"type":"fulltext","provider":"lucene"}}'
-res = conn.post("http://localhost:7474/db/data/index/node",data,HEADER)
+res = conn.post("/db/data/index/node",data,HEADER)
 
 puts "actors fulltext index created!" if res.status == 201
 
 data = '{"name":"movies_fulltext", "config":{"type":"fulltext","provider":"lucene"}}'
-res = conn.post("http://localhost:7474/db/data/index/node",data,HEADER)
+res = conn.post("/db/data/index/node",data,HEADER)
 
 puts "movies fulltext index created!" if res.status == 201
 
